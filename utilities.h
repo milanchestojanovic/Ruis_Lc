@@ -17,10 +17,10 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"//calculate trajectory distance
-
 #include "TrackingTools/GeomPropagators/interface/AnalyticalImpactPointExtrapolator.h"
 #include "TrackingTools/PatternTools/interface/TransverseImpactPointExtrapolator.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
+
 
 #include "SimTracker/Records/interface/TrackAssociatorRecord.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
@@ -40,11 +40,12 @@
 #include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "RecoVertex/VertexTools/interface/VertexDistance3D.h"//proper covariance error calculation
+//from here for the DCA and its error
 #include "RecoVertex/KinematicFit/interface/KinematicParticleFitter.h"
 #include "RecoVertex/KinematicFit/interface/MultiTrackMassKinematicConstraint.h"
 #include "RecoVertex/VertexPrimitives/interface/ConvertToFromReco.h"
-
 #include "DataFormats/GeometryCommonDetAlgo/interface/Measurement1D.h"
+
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GtFdlWord.h"
@@ -60,8 +61,6 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"
 #include "DataFormats/Math/interface/Vector3D.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
-#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include "DataFormats/PatCandidates/interface/GenericParticle.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/TrackReco/interface/DeDxData.h"
@@ -131,10 +130,45 @@ class CommonFuncts{//{{{
                 md.calculate((*out_it)->currentState().freeTrajectoryState(),(*in_it)->currentState().freeTrajectoryState());
                 if (md.distance() > maxDoca)
                     maxDoca = md.distance();
-            }
-        }
-        return maxDoca;
-    }
-};//}}}
+			}
+		}
+		return maxDoca;
+	}
 
+	const double mp2 = 0.9383 * 0.9383;
+	const double mK2 = 0.493677 * 0.493677;
+	const double mpi2 = 0.13957 * 0.13957;
+
+	double MQtbl[16][3] = { \
+		{  0.,    0.,    0.   }, // 0 (- - -)
+		   {  0.,    0.,    0.   },
+		   {  mp2,   mpi2,  mK2  }, // 2 (- - +)
+		   {  mpi2,  mp2,   mK2  },
+		   {  mp2,   mK2,   mpi2 }, // 4 (- + -)
+		   {  mpi2,  mK2,   mp2  },
+		   {  mK2,   mp2,   mpi2 }, // 6 (- + +)
+		   {  mK2,   mpi2,  mp2  },
+		   {  mK2,   mp2,   mpi2 }, // 8 (+ - -)
+		   {  mK2,   mpi2,  mp2  },
+		   {  mp2,   mK2,   mpi2 }, // 10 (+ - +)
+		   {  mpi2,  mK2,   mp2  },
+		   {  mp2,   mpi2,  mK2  }, // 12 (+ + -)
+		   {  mpi2,  mp2,   mK2  },
+		   {  0.,    0.,    0.   }, // 14 (+ + +)
+		   {  0.,    0.,    0.   }
+	};
+
+
+
+
+	double totE(int p, double p1sq, double p2sq, double p3sq) {
+		double m1 = MQtbl[p][0];
+		double m2 = MQtbl[p][1];
+		double m3 = MQtbl[p][2];
+		return sqrt(p1sq + m1) + sqrt(p2sq + m2) + sqrt(p3sq + m3);
+	}
+
+
+
+};//}}}
 #endif
