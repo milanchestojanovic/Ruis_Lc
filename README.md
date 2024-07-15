@@ -2,8 +2,8 @@ To setup the code:
 =====
 
 ```
-cmsrel CMSSW_11_2_0_pre9
-cd CMSSW_11_2_0_pre9/src
+cmsrel CMSSW_13_2_4
+cd CMSSW_13_2_4/src
 cmsenv
 git clone --branch CMSSW_13X_2023data git@github.com:your-username/LambdaC.git
 scram b -j4
